@@ -1,0 +1,1214 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>eCH-Versionsvergleich</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231c2a38'/%3E%3Crect x='7' y='8' width='13' height='5' rx='2' fill='%23f08a92'/%3E%3Crect x='7' y='19' width='18' height='5' rx='2' fill='%236fd08f'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;600&family=Noto+Sans+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/diff@5.2.0/dist/diff.min.js"
+        integrity="sha384-lJJVaUgxmk/PVfQnAsGN1QuJZrE+n6bg2EMu33yVZOJ2av/3UzTHbmnPCI7ENJYa"
+        crossorigin="anonymous"></script>
+<!-- Only needed for the "Formatted" view; the text diff works without them. -->
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"
+        integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"
+        integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
+        crossorigin="anonymous"></script>
+<style>
+  :root {
+    color-scheme: light;
+    --paper: #ffffff;
+    --mist: #f1f3f5;
+    --rule: #d3d9df;
+    --ink: #1c2a38;
+    --ink-soft: #5b6875;
+    --accent: #2b5d8c;
+    --warn-bg: #fff6e0;
+    --warn-ink: #6b4b00;
+    --del-row: #fcecec;
+    --del-word: #f3b8bd;
+    --del-ink: #a8231b;
+    --add-row: #e8f4ec;
+    --add-word: #a7d7b6;
+    --add-ink: #1d6a3a;
+    --fill: repeating-linear-gradient(-45deg, transparent 0 6px, #e7ebef 6px 7px);
+    --sans: "Noto Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --mono: "Noto Sans Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --page: 72rem;
+    --gutter: 1.5rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --paper: #121a22;
+      --mist: #1a242e;
+      --rule: #2e3b48;
+      --ink: #e3e8ed;
+      --ink-soft: #97a4b1;
+      --accent: #8dbbe6;
+      --warn-bg: #3a2f12;
+      --warn-ink: #f2d692;
+      --del-row: #3a1c20;
+      --del-word: #74303a;
+      --del-ink: #ff9b93;
+      --add-row: #17321f;
+      --add-word: #2b6640;
+      --add-ink: #8fdca8;
+      --fill: repeating-linear-gradient(-45deg, transparent 0 6px, #202c37 6px 7px);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 1rem/1.5 var(--sans);
+  }
+  a { color: var(--accent); }
+  button, select, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  code, kbd { font-family: var(--mono); font-size: 0.92em; }
+  .wrap { max-width: var(--page); margin: 0 auto; padding-left: var(--gutter); padding-right: var(--gutter); }
+
+  /* ---------- Top bar: which standard (left), which language (right) ---------- */
+  .topbar { border-bottom: 1px solid var(--rule); font-size: 0.875rem; }
+  .topbar .wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+  .repo { display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 0 1 auto; }
+  .repo select {
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 0;
+    max-width: 100%;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23778592' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 0.65rem center / 0.6rem auto;
+    padding: 0.3rem 1.9rem 0.3rem 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+  .repo select:hover { border-color: var(--ink-soft); }
+  .repo select option { font-weight: 400; }
+  .topbar .gh {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ink-soft);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .topbar .gh:hover { color: var(--ink); }
+  .icon { width: 1.1em; height: 1.1em; flex: none; }
+  .spacer { flex: 1 1 auto; }
+
+  .seg {
+    display: inline-flex;
+    flex: none;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--paper);
+  }
+  .seg:empty { display: none; }
+  .seg button {
+    border: 0;
+    background: transparent;
+    padding: 0.3rem 0.75rem;
+    cursor: pointer;
+  }
+  .seg button + button { border-left: 1px solid var(--rule); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .seg button:disabled { opacity: 0.45; cursor: default; }
+  .langs button { font-weight: 600; letter-spacing: 0.03em; padding: 0.3rem 0.65rem; }
+
+  /* ---------- Header: the sentence is the control ---------- */
+  header .wrap { padding-top: 2.25rem; padding-bottom: 1.75rem; }
+  h1 {
+    position: relative;
+    margin: 0;
+    font-weight: 300;
+    font-size: clamp(1.6rem, 4.2vw, 2.9rem);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15em 0.4em;
+  }
+  .version, .ruler { font-weight: 600; letter-spacing: -0.02em; }
+  .version {
+    appearance: none;
+    -webkit-appearance: none;
+    max-width: 100%;
+    border: 0;
+    border-bottom: 2px solid var(--ink);
+    border-radius: 0;
+    background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23778592' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 0.1em center / 0.4em auto;
+    padding: 0 0.75em 0.05em 0;
+    font-size: inherit;
+    line-height: inherit;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+  .version:hover { border-bottom-color: var(--accent); }
+  .version:disabled { opacity: 0.4; cursor: default; }
+  .version option, .version optgroup { font-size: 1rem; font-weight: 400; letter-spacing: 0; color: #1c2a38; background: #fff; }
+  .version optgroup { font-weight: 600; }
+  .version option:disabled { color: #9aa5b0; }
+  .ruler { position: absolute; visibility: hidden; white-space: pre; pointer-events: none; }
+  .swap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    align-self: center;
+    margin-left: 0.25rem;
+    border: 1px solid var(--rule);
+    background: transparent;
+    border-radius: 999px;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.875rem;
+    letter-spacing: 0;
+    cursor: pointer;
+  }
+  .swap:hover { border-color: var(--ink-soft); }
+
+  .provenance {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+    gap: 0.5rem 2rem;
+    margin: 1.25rem 0 0;
+    min-height: 1.3rem;
+    font-size: 0.875rem;
+    color: var(--ink-soft);
+    max-width: 60rem;
+  }
+  .provenance p { margin: 0; }
+  .provenance strong { color: var(--ink); font-weight: 600; }
+  .provenance .warn {
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+  }
+  .provenance .warn strong, .provenance .warn a { color: inherit; }
+
+  /* ---------- Sticky toolbar ---------- */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--mist);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .toolbar .wrap {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
+    font-size: 0.875rem;
+  }
+  .field { display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; }
+  .field input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-grid;
+    place-content: center;
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--paper);
+    cursor: pointer;
+  }
+  .field:hover input[type="checkbox"] { border-color: var(--ink-soft); }
+  .field input[type="checkbox"]:checked { background: var(--ink); border-color: var(--ink); }
+  .field input[type="checkbox"]:checked::before {
+    content: "";
+    width: 0.3rem;
+    height: 0.58rem;
+    margin-top: -0.12rem;
+    border: solid var(--paper);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .stats { color: var(--ink-soft); white-space: nowrap; }
+  .stats .n-del { color: var(--del-ink); font-weight: 600; }
+  .stats .n-add { color: var(--add-ink); font-weight: 600; }
+  .nav { display: inline-flex; gap: 0.4rem; }
+  .nav button, .message button {
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    border-radius: 6px;
+    padding: 0.28rem 0.7rem;
+    cursor: pointer;
+  }
+  .nav button:disabled { opacity: 0.45; cursor: default; }
+
+  /* ---------- Output ---------- */
+  main.wrap { padding-top: 1.5rem; padding-bottom: 4rem; }
+  .message {
+    max-width: 44rem;
+    padding: 1rem 1.25rem;
+    border-left: 3px solid var(--rule);
+    color: var(--ink-soft);
+  }
+  .message.error { border-left-color: var(--del-ink); color: var(--ink); }
+  .message p { margin: 0 0 0.5rem; }
+  .message p:last-child { margin-bottom: 0; }
+
+  /* Text diff */
+  .diff-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+  }
+  table.diff {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font: 400 0.8125rem/1.6 var(--mono);
+  }
+  .diff.split { min-width: 52rem; }
+  .diff col.ln { width: 3.6em; }
+  .diff col.mk { width: 1.6em; }
+  .diff td { padding: 0 0.6em; vertical-align: top; }
+  .diff td.ln {
+    text-align: right;
+    color: var(--ink-soft);
+    opacity: 0.7;
+    user-select: none;
+    padding: 0 0.5em;
+  }
+  .diff td.ln::before { content: attr(data-n); }
+  .diff td.mk { user-select: none; text-align: center; padding: 0; font-weight: 600; }
+  .diff td.tx { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .diff tr.del td, .diff td.del { background: var(--del-row); }
+  .diff tr.add td, .diff td.add { background: var(--add-row); }
+  .diff tr.del td.mk { color: var(--del-ink); }
+  .diff tr.add td.mk { color: var(--add-ink); }
+  .diff td.fill { background: var(--fill); }
+  .diff .split-sep { border-left: 1px solid var(--rule); }
+  .diff tbody.hunk.current td.ln:first-child { box-shadow: inset 3px 0 0 var(--ink); }
+  .diff tbody.fold td {
+    background: var(--mist);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 0;
+  }
+  .fold button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    font: 400 0.8125rem/2 var(--sans);
+    color: var(--ink-soft);
+    text-align: left;
+    cursor: pointer;
+  }
+  .fold button:hover { color: var(--accent); }
+  .diff tbody.fold button { padding: 0 1rem 0 8.2em; }
+
+  del, ins { text-decoration: none; border-radius: 2px; }
+  del { background: var(--del-word); }
+  ins { background: var(--add-word); }
+  .hunk { scroll-margin-top: 7rem; }
+  .diff tbody.hunk tr:first-child td { scroll-margin-top: 7rem; }
+
+  /* Formatted preview */
+  .preview { max-width: 54rem; font-size: 0.9375rem; line-height: 1.6; }
+  .preview .blk { padding: 0.05rem 0.9rem; border-left: 3px solid transparent; overflow-x: auto; }
+  .preview .blk.del { background: var(--del-row); border-left-color: var(--del-ink); }
+  .preview .blk.add { background: var(--add-row); border-left-color: var(--add-ink); }
+  .preview .hunk { margin: 0.4rem 0; border-radius: 4px; }
+  .preview-wrap { overflow-x: auto; margin: -0.75rem; padding: 0.75rem; }
+  .preview.split { max-width: none; min-width: 46rem; }
+  .preview.split .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 1.25rem; }
+  .preview.split .side { display: flex; flex-direction: column; min-width: 0; }
+  .preview.split .blk.fill { flex: 1; min-height: 1.5rem; background: var(--fill); }
+  .preview .hunk.current { position: relative; z-index: 1; outline: 2px solid var(--ink); outline-offset: 5px; }
+  .preview div.fold {
+    margin: 0.6rem 0;
+    background: var(--mist);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+  }
+  .preview div.fold button { padding: 0 0.9rem; }
+  .preview h1, .preview h2, .preview h3, .preview h4, .preview h5 {
+    display: block; margin: 1.1em 0 0.4em; font-weight: 600; line-height: 1.3; letter-spacing: 0;
+  }
+  .preview h1 { font-size: 1.6rem; }
+  .preview h2 { font-size: 1.3rem; }
+  .preview h3 { font-size: 1.1rem; }
+  .preview h4, .preview h5 { font-size: 1rem; }
+  .preview p, .preview ul, .preview ol, .preview pre, .preview table, .preview blockquote { margin: 0.6em 0; }
+  .preview ul, .preview ol { padding-left: 1.5em; }
+  .preview img { max-width: 100%; height: auto; }
+  .preview pre {
+    padding: 0.6rem 0.8rem; background: var(--mist); border-radius: 4px;
+    overflow-x: auto; font-size: 0.8125rem; line-height: 1.5;
+  }
+  .preview blockquote { padding-left: 0.9rem; border-left: 3px solid var(--rule); color: var(--ink-soft); }
+  .preview blockquote.callout {
+    --tone: #2f6fb3;
+    padding: 0.5rem 0.9rem;
+    border-left: 4px solid var(--tone);
+    border-radius: 0 4px 4px 0;
+    background: color-mix(in srgb, var(--tone) 9%, transparent);
+    color: inherit;
+  }
+  .preview .callout.tip { --tone: #2e8b57; }
+  .preview .callout.important { --tone: #8250df; }
+  .preview .callout.warning { --tone: #b7791f; }
+  .preview .callout.caution { --tone: #c9372c; }
+  .preview .callout > * { margin: 0.4em 0; }
+  .preview .callout > :first-child { margin-top: 0; }
+  .preview .callout > :last-child { margin-bottom: 0; }
+  .preview .callout-label {
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: color-mix(in srgb, var(--tone) 70%, var(--ink));
+  }
+  .preview .callout h1, .preview .callout h2, .preview .callout h3, .preview .callout h4, .preview .callout h5 { font-size: 1rem; }
+  .preview table { border-collapse: collapse; font-size: 0.875rem; }
+  .preview th, .preview td { border: 1px solid var(--rule); padding: 0.25rem 0.5rem; vertical-align: top; text-align: left; }
+  .preview th { background: var(--mist); font-weight: 600; }
+  .preview .blk.del th, .preview .blk.add th { background: transparent; }
+
+  footer.wrap { padding-bottom: 3rem; font-size: 0.8125rem; color: var(--ink-soft); }
+
+  @media (max-width: 40rem) {
+    :root { --gutter: 1rem; }
+    header .wrap { padding-top: 1.5rem; }
+    .topbar .gh span { display: none; }
+    .toolbar { position: static; }
+    .toolbar .wrap { gap: 0.5rem 0.8rem; }
+    main.wrap { padding-left: 0.5rem; padding-right: 0.5rem; }
+    .diff col.ln { width: 2.8em; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <label class="repo"><select id="repo" aria-label="eCH-Dokument"></select></label>
+    <a class="gh" id="repo-link" href="#" aria-label="Auf GitHub öffnen"><svg class="icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg><span>Auf GitHub öffnen</span></a>
+    <span class="spacer"></span>
+    <div class="seg langs" id="langs" role="group" aria-label="Sprache des Dokuments"></div>
+  </div>
+</div>
+
+<header>
+  <div class="wrap">
+    <h1>
+      <span>Vergleiche</span>
+      <select class="version" id="from" aria-label="Ältere Version" disabled></select>
+      <span>mit</span>
+      <select class="version" id="to" aria-label="Neuere Version" disabled></select>
+      <button class="swap" id="swap" type="button" title="Die beiden Versionen tauschen"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4"/></svg>Tauschen</button>
+      <span class="ruler" id="ruler" aria-hidden="true"></span>
+    </h1>
+    <div class="provenance" id="provenance" aria-live="polite"></div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="wrap">
+    <div class="seg" role="group" aria-label="Darstellung">
+      <button type="button" data-fmt="text" aria-pressed="true" title="Der Markdown-Text, Zeile für Zeile">Text</button>
+      <button type="button" data-fmt="formatted" aria-pressed="false" title="Das Markdown als formatiertes Dokument">Formatiert</button>
+    </div>
+    <div class="seg" role="group" aria-label="Anordnung">
+      <button type="button" data-view="unified" aria-pressed="true" title="Änderungen fortlaufend in einer Spalte">Untereinander</button>
+      <button type="button" data-view="split" aria-pressed="false" title="Alt und neu nebeneinander">Nebeneinander</button>
+    </div>
+    <label class="field"><input type="checkbox" id="full"> Ganzes Dokument</label>
+    <span class="spacer"></span>
+    <span class="stats" id="stats"></span>
+    <span class="nav">
+      <button type="button" id="prev" title="Vorherige Änderung (p)" disabled>Zurück</button>
+      <button type="button" id="next" title="Nächste Änderung (n)" disabled>Weiter</button>
+    </span>
+  </div>
+</div>
+
+<main class="wrap" id="out">
+  <div class="message"><p>Versionen werden von GitHub geladen…</p></div>
+</main>
+
+<footer class="wrap" id="footer"></footer>
+
+<script>
+"use strict";
+
+/* ===================== Configuration ===================== */
+const CONFIG = {
+  owner: "blw-ofag-ufag",
+  repos: [
+    { name: "eCH-0264", title: "Landwirtschaftliche Kontrolldaten" },
+    { name: "eCH-0265", title: "Landwirtschaftliche Kulturen" },
+    { name: "eCH-0309", title: "Tierverkehrsdaten" }
+  ],
+  defaultRepo: "eCH-0265",
+  mainBranch: "main",          // CI builds every push to this branch …
+  pagesBranch: "gh-pages",     // … and commits the result here as "deploy: <main sha>"
+  renderedFile: "index.md",    // the rendered Markdown, one per language folder: de/index.md, fr/index.md, …
+  languages: { de: "Deutsch", fr: "Français", it: "Italiano", en: "English" },
+  context: 3,                  // unchanged lines shown around each change (text layouts)
+  maxBuildDrift: 10,           // a tag without its own build may use a build at most this many commits newer
+  cacheMinutes: 15,            // GitHub API answers are kept in localStorage to save the 60 requests/hour limit
+  maxWordDiffChars: 40000      // larger changed passages get line highlighting only
+};
+
+/* ===================== Small helpers ===================== */
+class UserError extends Error {}
+const $ = id => document.getElementById(id);
+const O = CONFIG.owner;
+const short = sha => sha.slice(0, 7);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const repoUrl = repo => `https://github.com/${O}/${repo}`;
+const commitLink = (repo, sha) => `<a href="${repoUrl(repo)}/commit/${sha}"><code>${short(sha)}</code></a>`;
+const dateFmt = new Intl.DateTimeFormat("de-CH", { day: "numeric", month: "short", year: "numeric" });
+const timeFmt = new Intl.DateTimeFormat("de-CH", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const PREVIEW_OK = typeof marked !== "undefined" && typeof DOMPurify !== "undefined";
+
+/* GitHub API with a localStorage cache. `map` slims the response before caching.
+   Anything addressed by a commit SHA never changes and is cached for good (ttl = Infinity).
+   If GitHub refuses (rate limit, offline) an outdated cached answer is used rather than failing. */
+async function gh(path, map = x => x, ttl = CONFIG.cacheMinutes * 60000) {
+  const key = `echdiff:${path}`;
+  let hit = null;
+  try { hit = JSON.parse(localStorage.getItem(key)); } catch (_) { /* storage unavailable or corrupt */ }
+  if (hit && Date.now() - hit.t < ttl) return hit.v;
+
+  let res;
+  try {
+    res = await fetch(`https://api.github.com${path}`, { headers: { Accept: "application/vnd.github+json" } });
+  } catch (_) {
+    if (hit) return hit.v;
+    throw new UserError("GitHub ist nicht erreichbar. Bitte die Verbindung prüfen und die Seite neu laden.");
+  }
+  if (!res.ok) {
+    if (hit) return hit.v;
+    if ((res.status === 403 || res.status === 429) && res.headers.get("x-ratelimit-remaining") === "0") {
+      const reset = new Date(Number(res.headers.get("x-ratelimit-reset")) * 1000);
+      const at = reset.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
+      throw new UserError(`Das GitHub-Limit von 60 API-Anfragen pro Stunde ist für dieses Netzwerk aufgebraucht (ein Büronetzwerk teilt sich ein Limit). Es wird um ${at} Uhr zurückgesetzt; danach bitte die Seite neu laden.`);
+    }
+    throw new Error(`Die GitHub-API antwortete mit ${res.status} für ${path}`);
+  }
+  const value = map(await res.json());
+  try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), v: value })); } catch (_) {}
+  return value;
+}
+
+/* Follows ?page= until a short page, a stop condition, or maxPages. */
+async function ghAll(path, map, { maxPages = 5, until = null } = {}) {
+  const all = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const batch = await gh(`${path}${path.includes("?") ? "&" : "?"}per_page=100&page=${page}`, map);
+    all.push(...batch);
+    if (batch.length < 100 || (until && until(all))) break;
+  }
+  return all;
+}
+
+/* Raw files at a commit SHA never change; kept in memory for the session. Not rate limited. */
+const rawCache = new Map();
+function raw(repo, sha, path) {
+  const url = `https://raw.githubusercontent.com/${O}/${repo}/${sha}/${path}`;
+  if (!rawCache.has(url)) {
+    const p = fetch(url).then(async res => {
+      if (res.status === 404) throw new UserError(`${path} fehlt im Build ${short(sha)}.`);
+      if (!res.ok) throw new Error(`Fetching ${path} at ${short(sha)} failed (${res.status}).`);
+      return (await res.text()).replace(/\r\n?/g, "\n");
+    });
+    p.catch(() => rawCache.delete(url));
+    rawCache.set(url, p);
+  }
+  return rawCache.get(url);
+}
+
+/* Sort tags: v2.0.0-3 > v2.0.0-2 > v1.1.0-2 … */
+function compareTags(a, b) {
+  const pa = a.match(/\d+|\D+/g) || [], pb = b.match(/\d+|\D+/g) || [];
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i], y = pb[i];
+    if (x === undefined) return -1;
+    if (y === undefined) return 1;
+    const nx = /^\d+$/.test(x), ny = /^\d+$/.test(y);
+    if (nx && ny && +x !== +y) return +x - +y;
+    if (!(nx && ny) && x !== y) return x < y ? -1 : 1;
+  }
+  return 0;
+}
+
+/* ===================== Repository index =====================
+   The rendered Markdown only exists on gh-pages, where every commit is one CI build
+   named "deploy: <sha of the main commit it was built from>". That message is the link
+   between a version tag (a commit on main) and its rendered output. */
+const repoCache = new Map();
+function loadRepo(repo) {
+  if (!repoCache.has(repo)) {
+    const p = (async () => {
+      const api = `/repos/${O}/${repo}`;
+      const [tags, deploys] = await Promise.all([
+        gh(`${api}/tags?per_page=100`, a => a.map(t => ({ name: t.name, sha: t.commit.sha }))),
+        ghAll(`${api}/commits?sha=${CONFIG.pagesBranch}`, mapDeploys)
+      ]);
+      tags.sort((a, b) => compareTags(b.name, a.name));
+      if (!deploys.length) throw new UserError(`${repo} hat noch keine Builds auf dem Branch ${CONFIG.pagesBranch}.`);
+
+      const bySrc = new Map();                 // main sha -> its newest build
+      for (const d of deploys) if (d.src && !bySrc.has(d.src)) bySrc.set(d.src, d);
+
+      // Which languages have a rendered Markdown file in the newest build?
+      const found = await gh(`${api}/git/trees/${deploys[0].pagesSha}?recursive=1`, t => {
+        const file = CONFIG.renderedFile.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const re = new RegExp(`^([^/]+)/${file}$`);
+        return t.tree.map(e => (e.type === "blob" && e.path.match(re) || [])[1]).filter(Boolean);
+      }, Infinity);
+      const order = Object.keys(CONFIG.languages);
+      const rank = l => (order.indexOf(l) + 1) || 99;
+      const langs = found.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+
+      // Tags whose own commit was never built: use the next build on main, if it is close.
+      const builds = new Map();                // tag name -> { build, ahead }
+      const pending = [];
+      for (const t of tags) {
+        if (bySrc.has(t.sha)) builds.set(t.name, { build: bySrc.get(t.sha), ahead: 0 });
+        else pending.push(t);
+      }
+      if (pending.length) {
+        const since = new Date(Date.parse(deploys[deploys.length - 1].date) - 864e5).toISOString();
+        const want = new Set(pending.map(t => t.sha));
+        const main = await ghAll(`${api}/commits?sha=${CONFIG.mainBranch}&since=${since}`, a => a.map(c => c.sha),
+          { until: all => [...want].every(s => all.includes(s)) });   // newest first
+        for (const t of pending) {
+          const i = main.indexOf(t.sha);
+          for (let j = i - 1; i > 0 && j >= Math.max(0, i - CONFIG.maxBuildDrift); j--) {
+            if (bySrc.has(main[j])) { builds.set(t.name, { build: bySrc.get(main[j]), ahead: i - j }); break; }
+          }
+        }
+      }
+      return { repo, tags, deploys, langs, builds };
+    })();
+    p.catch(() => repoCache.delete(repo));
+    repoCache.set(repo, p);
+  }
+  return repoCache.get(repo);
+}
+const mapDeploys = a => a.map(c => ({
+  pagesSha: c.sha,
+  date: c.commit.committer.date,
+  src: (c.commit.message.match(/^deploy:\s*([0-9a-f]{40})/) || [])[1] || null
+}));
+
+/* Everything selectable for one document: the latest build, the tags, and every build
+   in which the rendered file changed. A tag is only offered if its build already
+   contained the file, so that nothing uncomparable can be picked. */
+async function loadVersions(idx, lang) {
+  const path = `${lang}/${CONFIG.renderedFile}`;
+  const changes = await ghAll(
+    `/repos/${O}/${idx.repo}/commits?sha=${CONFIG.pagesBranch}&path=${encodeURIComponent(path)}`, mapDeploys);
+  if (!changes.length) throw new UserError(`${path} wurde auf dem Branch ${CONFIG.pagesBranch} von ${idx.repo} noch nie veröffentlicht.`);
+  const firstSeen = Date.parse(changes[changes.length - 1].date);
+
+  const versions = [{ id: "latest", label: "aktuell", kind: "latest", build: idx.deploys[0], ok: true }];
+  for (const t of idx.tags) {
+    const b = idx.builds.get(t.name);
+    const ok = !!b && Date.parse(b.build.date) >= firstSeen;
+    versions.push({
+      id: t.name, label: t.name, kind: "tag", sha: t.sha, ok,
+      build: b ? b.build : null, ahead: b ? b.ahead : 0,
+      why: ok ? "" : b ? `noch kein Markdown (${lang})` : "kein gerenderter Build"
+    });
+  }
+  for (const c of changes) {
+    versions.push({ id: `@${short(c.pagesSha)}`, label: timeFmt.format(new Date(c.date)), kind: "build", build: c, ok: true });
+  }
+  return { path, versions };
+}
+
+/* Text and a description of where it came from, for one side of the comparison. */
+async function resolveSide(v, idx, path) {
+  const repo = idx.repo, b = v.build;
+  const text = await raw(repo, b.pagesSha, path);
+  const when = dateFmt.format(new Date(b.date));
+  const from = b.src ? `Commit ${commitLink(repo, b.src)}` : "einem unbekannten Commit";
+  const side = { text, sha: b.pagesSha, warn: false };
+  if (v.kind === "latest") side.note = `<strong>Aktueller Build</strong> vom ${when}, erstellt aus ${from}`;
+  else if (v.kind === "build") side.note = `<strong>Build vom ${esc(v.label)}</strong>, erstellt aus ${from}`;
+  else if (!v.ahead) side.note = `<strong>${esc(v.label)}</strong>, am ${when} aus dem getaggten ${from} erstellt`;
+  else {
+    let files = "";
+    try {   // optional detail; the comparison works without it
+      const changed = await gh(`/repos/${O}/${repo}/compare/${v.sha}...${b.src}`,
+        c => (c.files || []).map(f => f.filename), Infinity);
+      if (changed.length) files = ` Dazwischen geänderte Dateien: ${changed.slice(0, 4).map(f => `<code>${esc(f)}</code>`).join(", ")}${changed.length > 4 ? ` und ${changed.length - 4} weitere` : ""}.`;
+    } catch (_) {}
+    side.warn = true;
+    side.note = `<strong>${esc(v.label)}</strong> selbst wurde nie gebaut. Angezeigt wird der nächste Build, ${plural(v.ahead, "Commit", "Commits")} später aus ${from} erstellt.${files} <a href="${repoUrl(repo)}/compare/${v.sha}...${b.src}">Diese Änderungen ansehen</a>.`;
+  }
+  return side;
+}
+
+/* ===================== Diff core ===================== */
+function toLines(s) {
+  if (!s) return [];
+  const a = s.split("\n");
+  if (a[a.length - 1] === "") a.pop();
+  return a;
+}
+
+// Turns jsdiff parts into runs of unchanged items ("eq") and changed passages ("chg").
+function group(parts, items) {
+  const blocks = [];
+  for (const p of parts) {
+    const xs = items(p);
+    if (!p.added && !p.removed) { blocks.push({ type: "eq", items: xs }); continue; }
+    let last = blocks[blocks.length - 1];
+    if (!last || last.type !== "chg") { last = { type: "chg", del: [], add: [] }; blocks.push(last); }
+    (p.removed ? last.del : last.add).push(...xs);
+  }
+  return blocks;
+}
+
+// Character ranges of the words that differ between two passages. Line breaks are
+// compared as spaces (same length), so a sentence that was merely re-wrapped only
+// reports the words that really changed.
+function changedRanges(A, B) {
+  const a = [], b = [];
+  if (!A || !B) return { a, b };
+  if (A.length + B.length > CONFIG.maxWordDiffChars) return null;
+  let pa = 0, pb = 0;
+  for (const tk of Diff.diffWordsWithSpace(A.replace(/\n/g, " "), B.replace(/\n/g, " "))) {
+    const n = tk.value.length;
+    if (tk.removed) { a.push([pa, pa + n]); pa += n; }
+    else if (tk.added) { b.push([pb, pb + n]); pb += n; }
+    else { pa += n; pb += n; }
+  }
+  return { a, b };
+}
+
+// Cuts lines (joined by "\n") into segments { t, h } where h marks changed text.
+function markLines(lines, ranges) {
+  let offset = 0, r = 0;
+  return lines.map(line => {
+    const end = offset + line.length, segs = [];
+    let pos = offset;
+    while (r < ranges.length && ranges[r][1] <= pos) r++;
+    for (let k = r; k < ranges.length && ranges[k][0] < end; k++) {
+      const s = Math.max(ranges[k][0], pos), e = Math.min(ranges[k][1], end);
+      if (e <= s) continue;
+      if (s > pos) segs.push({ t: line.slice(pos - offset, s - offset), h: false });
+      const t = line.slice(s - offset, e - offset);
+      segs.push({ t, h: /\S/.test(t) });
+      pos = e;
+    }
+    if (pos < end) segs.push({ t: line.slice(pos - offset), h: false });
+    offset = end + 1;
+    return segs;
+  });
+}
+
+/* ===================== Text layouts (unified, side by side) ===================== */
+const segHtml = (segs, tag) => segs.map(s => s.h ? `<${tag}>${esc(s.t)}</${tag}>` : esc(s.t)).join("");
+
+function renderText(a, b, view, full) {
+  const blocks = group(Diff.diffLines(a, b), p => toLines(p.value));
+  const ctx = full ? Infinity : CONFIG.context;
+  const split = view === "split";
+  let o = 1, n = 1, hunkNo = 0, added = 0, removed = 0;
+  const parts = [];
+
+  const eqRow = (text, on, nn) => split
+    ? `<tr><td class="ln" data-n="${on}"></td><td class="tx">${esc(text)}</td><td class="ln split-sep" data-n="${nn}"></td><td class="tx">${esc(text)}</td></tr>`
+    : `<tr><td class="ln" data-n="${on}"></td><td class="ln" data-n="${nn}"></td><td class="mk"></td><td class="tx">${esc(text)}</td></tr>`;
+
+  blocks.forEach((blk, bi) => {
+    if (blk.type === "eq") {
+      const N = blk.items.length;
+      const head = bi === 0 ? 0 : ctx, tail = bi === blocks.length - 1 ? 0 : ctx;
+      const rows = blk.items.map((t, i) => eqRow(t, o + i, n + i));
+      if (head + tail + 2 >= N) {
+        parts.push(`<tbody>${rows.join("")}</tbody>`);
+      } else {
+        const hidden = N - head - tail;
+        parts.push(`<tbody>${rows.slice(0, head).join("")}</tbody>`);
+        parts.push(`<tbody class="fold"><tr><td colspan="4"><button type="button">${plural(hidden, "unveränderte Zeile", "unveränderte Zeilen")} anzeigen (${o + head}–${o + head + hidden - 1})</button></td></tr></tbody>`);
+        parts.push(`<tbody hidden>${rows.slice(head, N - tail).join("")}</tbody>`);
+        parts.push(`<tbody>${rows.slice(N - tail).join("")}</tbody>`);
+      }
+      o += N; n += N;
+      return;
+    }
+
+    const rg = changedRanges(blk.del.join("\n"), blk.add.join("\n")) || { a: [], b: [] };
+    const del = markLines(blk.del, rg.a), add = markLines(blk.add, rg.b);
+    removed += del.length; added += add.length;
+    let html = "";
+    if (split) {
+      for (let i = 0; i < Math.max(del.length, add.length); i++) {
+        const L = i < del.length
+          ? `<td class="ln del" data-n="${o + i}"></td><td class="tx del">${segHtml(del[i], "del")}</td>`
+          : `<td class="ln fill"></td><td class="tx fill"></td>`;
+        const Rt = i < add.length
+          ? `<td class="ln add split-sep" data-n="${n + i}"></td><td class="tx add">${segHtml(add[i], "ins")}</td>`
+          : `<td class="ln fill split-sep"></td><td class="tx fill"></td>`;
+        html += `<tr>${L}${Rt}</tr>`;
+      }
+    } else {
+      del.forEach((segs, i) => {
+        html += `<tr class="del"><td class="ln" data-n="${o + i}"></td><td class="ln"></td><td class="mk" aria-label="entfernt">−</td><td class="tx">${segHtml(segs, "del")}</td></tr>`;
+      });
+      add.forEach((segs, i) => {
+        html += `<tr class="add"><td class="ln"></td><td class="ln" data-n="${n + i}"></td><td class="mk" aria-label="hinzugefügt">+</td><td class="tx">${segHtml(segs, "ins")}</td></tr>`;
+      });
+    }
+    parts.push(`<tbody class="hunk">${html}</tbody>`);
+    hunkNo++;
+    o += del.length; n += add.length;
+  });
+
+  const cols = split
+    ? `<col class="ln"><col><col class="ln"><col>`
+    : `<col class="ln"><col class="ln"><col class="mk"><col>`;
+  return {
+    html: `<div class="diff-wrap"><table class="diff ${split ? "split" : "unified"}"><colgroup>${cols}</colgroup>${parts.join("")}</table></div>`,
+    hunks: hunkNo, added, removed, unit: ["Zeile", "Zeilen"]
+  };
+}
+
+/* ===================== Preview layout (formatted Markdown) =====================
+   The document is cut into Markdown blocks (paragraphs, lists, tables, code…), the
+   blocks are diffed, and each block is formatted on its own. Changed words are wrapped
+   in <ins>/<del> only where that cannot break Markdown syntax. */
+function splitBlocks(text) {
+  const out = [];
+  let cur = [], fence = null;
+  const flush = () => { if (cur.length) { out.push(cur.join("\n")); cur = []; } };
+  for (const line of text.split("\n")) {
+    const m = line.match(/^\s*(`{3,}|~{3,})/);
+    if (fence) {
+      cur.push(line);
+      if (m && m[1][0] === fence[0] && m[1].length >= fence.length && /^\s*[`~]+\s*$/.test(line)) fence = null;
+    } else if (m) { fence = m[1]; cur.push(line); }
+    else if (line.trim() === "") flush();
+    else cur.push(line);
+  }
+  flush();
+  // An indented block continues the list item (or other container) before it.
+  const merged = [];
+  for (const b of out) {
+    if (merged.length && /^[ \t]/.test(b)) merged[merged.length - 1] += "\n\n" + b;
+    else merged.push(b);
+  }
+  return merged;
+}
+
+// A whole table or list is one block, often too large for a single word diff. Such
+// passages are first narrowed down to their changed lines, like the text view does.
+function lineAwareRanges(A, B) {
+  const a = [], b = [];
+  let pa = 0, pb = 0, del = null, add = null;            // pending [start, text]
+  const whole = (out, x) => out.push([x[0], x[0] + x[1].length]);
+  const flush = () => {
+    if (del && add) {
+      const r = changedRanges(del[1], add[1]);
+      if (r) {
+        for (const [s, e] of r.a) a.push([del[0] + s, del[0] + e]);
+        for (const [s, e] of r.b) b.push([add[0] + s, add[0] + e]);
+      }
+    } else if (del) whole(a, del);
+    else if (add) whole(b, add);
+    del = add = null;
+  };
+  for (const p of Diff.diffLines(A + "\n", B + "\n")) {
+    const n = p.value.length;
+    if (p.removed) { del = del ? [del[0], del[1] + p.value] : [pa, p.value]; pa += n; }
+    else if (p.added) { add = add ? [add[0], add[1] + p.value] : [pb, p.value]; pb += n; }
+    else { flush(); pa += n; pb += n; }
+  }
+  flush();
+  return { a, b };
+}
+
+// Text that must not be wrapped in <ins>/<del> because that would break the Markdown.
+const UNSAFE = [
+  /(^|\n)[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?(\n[ \t]*\2[ \t]*(?=\n|$)|$)/g,   // fenced code
+  /`[^`\n]*`/g,                                         // inline code
+  /\[\^[^\]\n]*\]:?/g,                                  // footnote references and labels
+  /\]\([^)\n]*\)/g,                                     // link and image targets
+  /<[^>]*>/g,                                           // HTML tags (also over several lines), autolinks
+  /https?:\/\/[^\s"'<>)\]]+/g,                          // bare URLs
+  /\$[^$\n]+\$/g,                                       // inline math
+  /&[#\w]+;/g,                                          // entities
+  /^[ \t]*(?:(?:[-+*]|\d+[.)]|#{1,6}|>)[ \t]+)*(?:[-+*]|\d+[.)]|#{1,6}|>)(?=[ \t]|$)/gm,   // list, heading, quote markers
+  /^[ \t|:=+-]+$/gm,                                    // table separators, rules
+  /[\[\]()<>|`*_#~$\\!&\n]/g                            // single characters with a meaning in Markdown
+];
+function safeMask(text) {
+  const ok = new Uint8Array(text.length).fill(1);
+  for (const re of UNSAFE) {
+    re.lastIndex = 0;
+    let m;
+    while ((m = re.exec(text))) {
+      ok.fill(0, m.index, m.index + m[0].length);
+      if (!m[0].length) re.lastIndex++;
+    }
+  }
+  return ok;
+}
+
+// Markdown blocks with changed words wrapped in <tag>, given the ranges within blocks.join("\n\n").
+function markBlocks(blocks, ranges, tag) {
+  if (!ranges.length) return blocks;
+  let off = 0, r = 0;
+  return blocks.map(block => {
+    const start = off, end = off + block.length;
+    off = end + 2;
+    while (r < ranges.length && ranges[r][1] <= start) r++;
+    if (r >= ranges.length || ranges[r][0] >= end) return block;
+    if (/^\s*<(?:!--|(?:pre|script|style)\b)/i.test(block) || block.split("\n").every(l => /^(?: {4}|\t)/.test(l))) return block;
+    const ok = safeMask(block), hl = new Uint8Array(block.length);
+    for (let k = r; k < ranges.length && ranges[k][0] < end; k++) {
+      hl.fill(1, Math.max(ranges[k][0], start) - start, Math.min(ranges[k][1], end) - start);
+    }
+    // A change inside a link target is invisible in the formatted text: mark the link text instead.
+    for (const m of block.matchAll(/\[([^\]\n]*)\]\(([^)\n]*)\)/g)) {
+      const target = m.index + m[1].length + 3;
+      if (hl.subarray(target, target + m[2].length).includes(1)) hl.fill(1, m.index + 1, m.index + 1 + m[1].length);
+    }
+    let out = "", i = 0;
+    while (i < block.length) {
+      if (!(hl[i] && ok[i])) { out += block[i++]; continue; }
+      let j = i;
+      while (j < block.length && hl[j] && ok[j]) j++;
+      const run = block.slice(i, j), core = run.trim();
+      if (core) {
+        const lead = run.length - run.trimStart().length;
+        out += `${run.slice(0, lead)}<${tag}>${core}</${tag}>${run.slice(lead + core.length)}`;
+      } else out += run;
+      i = j;
+    }
+    return out;
+  });
+}
+
+let assetBase = "";   // where relative images of the block being formatted live
+if (PREVIEW_OK) {
+  DOMPurify.addHook("afterSanitizeAttributes", node => {
+    const rel = u => u && !/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(u);
+    if (node.tagName === "IMG") {
+      const src = node.getAttribute("src");
+      if (rel(src)) node.setAttribute("src", assetBase + src.replace(/^\.?\//, ""));
+      node.setAttribute("loading", "lazy");
+    } else if (node.tagName === "A") {
+      const href = node.getAttribute("href");
+      if (rel(href)) node.setAttribute("href", assetBase + href.replace(/^\.?\//, ""));
+      if (href && !href.startsWith("#")) { node.setAttribute("target", "_blank"); node.setAttribute("rel", "noopener"); }
+    }
+  });
+}
+// GitHub-style callouts ("> [!NOTE]"), which is how Quarto writes its callout blocks to Markdown.
+const CALLOUTS = {
+  note: { de: "Hinweis", fr: "Remarque", it: "Nota", en: "Note" },
+  tip: { de: "Tipp", fr: "Conseil", it: "Suggerimento", en: "Tip" },
+  important: { de: "Wichtig", fr: "Important", it: "Importante", en: "Important" },
+  warning: { de: "Warnung", fr: "Avertissement", it: "Avviso", en: "Warning" },
+  caution: { de: "Vorsicht", fr: "Attention", it: "Attenzione", en: "Caution" }
+};
+function callouts(html) {
+  return html.replace(/<blockquote>\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(?:<br\s*\/?>\s*)?(<\/p>)?/gi, (_, kind, closed) => {
+    const k = kind.toLowerCase(), label = CALLOUTS[k][state.lang] || CALLOUTS[k].de;
+    return `<blockquote class="callout ${k}"><p class="callout-label">${label}</p>${closed ? "" : "<p>"}`;
+  });
+}
+// Footnotes are not part of GitHub Markdown: show the number raised, and the note as a paragraph.
+function footnotes(src) {
+  return src
+    .replace(/^\[\^([^\]\n]+)\]:[ \t]*([^\n]*(?:\n(?:[ \t]*\n)*(?: {4}|\t)[^\n]*)*)/gm,
+      (_, n, body) => `<sup>${n}</sup> ${body.replace(/\n(?: {4}|\t)/g, "\n")}`)
+    .replace(/\[\^([^\]\n]+)\]/g, "<sup>$1</sup>");
+}
+function formatMd(src, base) {
+  assetBase = base;
+  return DOMPurify.sanitize(callouts(marked.parse(footnotes(src), { gfm: true })));
+}
+
+let lazyRuns = [];    // unchanged stretches that are only formatted when unfolded
+function eqRun(md, base, split) {
+  const html = `<div class="blk">${formatMd(md, base)}</div>`;
+  return split ? `<div class="row">${html}${html}</div>` : html;
+}
+function renderPreview(a, b, full, baseA, baseB, split) {
+  const blocks = group(Diff.diffArrays(splitBlocks(a.text), splitBlocks(b.text)), p => p.value);
+  const ctx = full ? Infinity : 1;
+  const eq = items => eqRun(items.join("\n\n"), baseB, split);
+  let hunks = 0, added = 0, removed = 0;
+  const parts = [];
+  lazyRuns = [];
+
+  blocks.forEach((blk, bi) => {
+    if (blk.type === "eq") {
+      const N = blk.items.length;
+      const head = bi === 0 ? 0 : ctx, tail = bi === blocks.length - 1 ? 0 : ctx;
+      if (head + tail + 1 >= N) { parts.push(eq(blk.items)); return; }
+      if (head) parts.push(eq(blk.items.slice(0, head)));
+      lazyRuns.push({ md: blk.items.slice(head, N - tail).join("\n\n"), base: baseB, split });
+      parts.push(`<div class="fold" data-lazy="${lazyRuns.length - 1}"><button type="button">${plural(N - head - tail, "unveränderter Block", "unveränderte Blöcke")} anzeigen</button></div>`);
+      if (tail) parts.push(eq(blk.items.slice(N - tail)));
+      return;
+    }
+    const A = blk.del.join("\n\n"), B = blk.add.join("\n\n");
+    const rg = changedRanges(A, B) || lineAwareRanges(A, B);
+    const del = markBlocks(blk.del, rg.a, "del"), add = markBlocks(blk.add, rg.b, "ins");
+    removed += del.length; added += add.length; hunks++;
+    const fill = `<div class="blk fill"></div>`;
+    const L = del.map(m => `<div class="blk del">${formatMd(m, baseA)}</div>`).join("");
+    const Rt = add.map(m => `<div class="blk add">${formatMd(m, baseB)}</div>`).join("");
+    parts.push(split
+      ? `<div class="hunk row"><div class="side">${L || fill}</div><div class="side">${Rt || fill}</div></div>`
+      : `<div class="hunk">${L}${Rt}</div>`);
+  });
+  return {
+    html: `<div class="preview-wrap"><div class="preview${split ? " split" : ""}">${parts.join("")}</div></div>`,
+    hunks, added, removed, unit: ["Block", "Blöcke"]
+  };
+}
+
+/* ===================== State, URL and UI ===================== */
+const state = { repo: CONFIG.defaultRepo, lang: null, from: null, to: null, fmt: "text", view: "unified", full: false };
+let idx = null, doc = null;         // repository index; { path, versions } of the chosen language
+let loadId = 0, runId = 0, current = -1, summary = null;
+
+function readUrl() {
+  const q = new URLSearchParams(location.search);
+  if (CONFIG.repos.some(r => r.name === q.get("repo"))) state.repo = q.get("repo");
+  for (const k of ["lang", "from", "to"]) if (q.get(k)) state[k] = q.get(k);
+  if (["unified", "split"].includes(q.get("view"))) state.view = q.get("view");
+  if (q.get("fmt") === "formatted" || q.get("view") === "preview") state.fmt = "formatted";
+  if (!PREVIEW_OK) state.fmt = "text";
+  state.full = q.get("full") === "1";
+}
+function writeUrl() {
+  const q = new URLSearchParams();
+  for (const k of ["repo", "lang", "from", "to", "fmt", "view"]) if (state[k]) q.set(k, state[k]);
+  if (state.full) q.set("full", "1");
+  history.replaceState(null, "", `${location.pathname}?${q}`);
+}
+
+// A native select is as wide as its widest option; size it to the chosen one instead.
+function fitSelect(sel) {
+  const opt = sel.selectedOptions[0];
+  $("ruler").textContent = opt ? (opt.dataset.short || opt.text) : "…";
+  const cs = getComputedStyle(sel);
+  sel.style.width = `${Math.ceil($("ruler").getBoundingClientRect().width + parseFloat(cs.paddingRight) + parseFloat(cs.paddingLeft)) + 2}px`;
+}
+
+function versionOptions(versions) {
+  const opt = v => `<option value="${esc(v.id)}"${v.ok ? "" : " disabled"}>${esc(v.label)}${v.ok ? "" : ` (${esc(v.why)})`}</option>`;
+  const of = kind => versions.filter(v => v.kind === kind);
+  const tags = of("tag"), builds = of("build");
+  return of("latest").map(opt).join("")
+    + (tags.length ? `<optgroup label="Getaggte Versionen">${tags.map(opt).join("")}</optgroup>` : "")
+    + `<optgroup label="Builds mit Änderungen am Dokument">${builds.map(opt).join("")}</optgroup>`;
+}
+
+function syncControls() {
+  $("repo").value = state.repo;
+  $("repo-link").href = repoUrl(state.repo);
+  for (const k of ["from", "to"]) { if (state[k]) $(k).value = state[k]; fitSelect($(k)); }
+  $("full").checked = state.full;
+  document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.view === state.view)));
+  document.querySelectorAll("[data-fmt]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.fmt === state.fmt)));
+  document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang)));
+  const r = CONFIG.repos.find(x => x.name === state.repo);
+  document.title = `${r.name} ${r.title}: Versionsvergleich`;
+}
+
+function showMessage(html, isError = false) {
+  $("out").innerHTML = `<div class="message${isError ? " error" : ""}">${html}</div>`;
+  summary = null; current = -1; updateNav();
+}
+const errorText = (e, what) => esc(e instanceof UserError ? e.message : `${what}: ${e.message}`);
+
+const hunkEls = () => [...document.querySelectorAll("#out .hunk")];
+function updateNav() {
+  const total = hunkEls().length;
+  $("prev").disabled = total === 0 || current <= 0;
+  $("next").disabled = total === 0 || current >= total - 1;
+  $("stats").innerHTML = summary
+    ? `${current >= 0 ? `Änderung ${current + 1} von ${summary.hunks}` : plural(summary.hunks, "Änderung", "Änderungen")}: <span class="n-del">−${summary.removed}</span> <span class="n-add">+${summary.added}</span> ${summary.unit[1]}`
+    : "";
+}
+function goTo(i) {
+  const els = hunkEls();
+  if (!els.length) return;
+  current = Math.max(0, Math.min(els.length - 1, i));
+  els.forEach((el, k) => el.classList.toggle("current", k === current));
+  (els[current].querySelector("td") || els[current]).scrollIntoView({ block: "start" });
+  updateNav();
+}
+
+/* Load a repository (and language), fill the pickers with what is comparable, then compare. */
+async function load() {
+  const my = ++loadId;
+  ++runId;
+  syncControls();
+  for (const k of ["from", "to"]) { $(k).disabled = true; $(k).innerHTML = ""; fitSelect($(k)); }
+  $("provenance").innerHTML = "";
+  showMessage(`<p>Die Versionen von ${esc(state.repo)} werden von GitHub geladen…</p>`);
+
+  try {
+    idx = await loadRepo(state.repo);
+    if (my !== loadId) return;
+    if (!idx.langs.length) throw new UserError(`Der aktuelle Build von ${state.repo} enthält kein gerendertes Markdown (<Sprache>/${CONFIG.renderedFile}).`);
+    if (!idx.langs.includes(state.lang)) state.lang = idx.langs[0];
+    $("langs").innerHTML = idx.langs.map(l =>
+      `<button type="button" data-lang="${esc(l)}" title="${esc(CONFIG.languages[l] || l)}">${esc(l.toUpperCase())}</button>`).join("");
+    syncControls();
+    doc = await loadVersions(idx, state.lang);
+    if (my !== loadId) return;
+  } catch (e) {
+    if (my !== loadId) return;
+    console.error(e);
+    if (!idx || idx.repo !== state.repo) $("langs").innerHTML = "";
+    showMessage(`<p>${errorText(e, "Die Versionsliste konnte nicht von GitHub geladen werden")}</p>`, true);
+    return;
+  }
+
+  const html = versionOptions(doc.versions);
+  for (const k of ["from", "to"]) { $(k).innerHTML = html; $(k).disabled = false; }
+
+  // Defaults: the two newest comparable tags; without tags, the last change of the document.
+  const usable = id => doc.versions.some(v => v.id === id && v.ok);
+  const tags = doc.versions.filter(v => v.kind === "tag" && v.ok).map(v => v.id);
+  const builds = doc.versions.filter(v => v.kind === "build").map(v => v.id);
+  if (!usable(state.to)) state.to = tags.length > 1 ? tags[0] : "latest";
+  if (!usable(state.from)) state.from = tags.length > 1 ? tags[1] : tags[0] || builds[1] || builds[0];
+  run();
+}
+
+async function run() {
+  const my = ++runId;
+  writeUrl();
+  syncControls();
+  const vFrom = doc.versions.find(v => v.id === state.from);
+  const vTo = doc.versions.find(v => v.id === state.to);
+  $("provenance").innerHTML = "";
+  showMessage(`<p><code>${esc(doc.path)}</code> wird für ${esc(vFrom.label)} und ${esc(vTo.label)} geladen…</p>`);
+
+  let a, b;
+  try {
+    [a, b] = await Promise.all([resolveSide(vFrom, idx, doc.path), resolveSide(vTo, idx, doc.path)]);
+  } catch (e) {
+    if (my !== runId) return;
+    console.error(e);
+    showMessage(`<p>${errorText(e, "Beim Laden der Dateien ist ein Fehler aufgetreten")}</p>`, true);
+    return;
+  }
+  if (my !== runId) return;
+
+  $("provenance").innerHTML =
+    `<p class="${a.warn ? "warn" : ""}">Ältere Version: ${a.note}</p><p class="${b.warn ? "warn" : ""}">Neuere Version: ${b.note}</p>`;
+
+  if (a.text === b.text) {
+    showMessage(`<p>Keine Unterschiede in <code>${esc(doc.path)}</code> zwischen ${esc(vFrom.label)} und ${esc(vTo.label)}.</p>`);
+    return;
+  }
+
+  await new Promise(r => setTimeout(r, 0));   // let the loading message paint first
+  if (my !== runId) return;
+  const dir = doc.path.replace(/[^/]*$/, "");
+  const base = side => `https://cdn.jsdelivr.net/gh/${O}/${idx.repo}@${side.sha}/${dir}`;
+  const result = state.fmt === "formatted"
+    ? renderPreview(a, b, state.full, base(a), base(b), state.view === "split")
+    : renderText(a.text, b.text, state.view, state.full);
+  $("out").innerHTML = result.html;
+  summary = result;
+  current = -1;
+  updateNav();
+}
+
+function wire() {
+  $("repo").innerHTML = CONFIG.repos.map(r => `<option value="${esc(r.name)}">${esc(r.name)} ${esc(r.title)}</option>`).join("");
+  $("repo").onchange = e => { Object.assign(state, { repo: e.target.value, lang: null, from: null, to: null }); load(); };
+  $("langs").addEventListener("click", e => {
+    const btn = e.target.closest("[data-lang]");
+    if (!btn || btn.dataset.lang === state.lang) return;
+    state.lang = btn.dataset.lang;   // versions are kept if they also exist in the other language
+    load();
+  });
+  $("from").onchange = e => { state.from = e.target.value; run(); };
+  $("to").onchange = e => { state.to = e.target.value; run(); };
+  $("swap").onclick = () => { if (doc) { [state.from, state.to] = [state.to, state.from]; run(); } };
+  $("full").onchange = e => { state.full = e.target.checked; if (doc) run(); };
+  for (const k of ["view", "fmt"]) document.querySelectorAll(`[data-${k}]`).forEach(b => {
+    if (b.dataset.fmt === "formatted" && !PREVIEW_OK) { b.disabled = true; b.title = "Der Markdown-Formatierer konnte nicht geladen werden."; }
+    b.onclick = () => { if (state[k] !== b.dataset[k]) { state[k] = b.dataset[k]; if (doc) run(); else syncControls(); } };
+  });
+  $("prev").onclick = () => goTo(current - 1);
+  $("next").onclick = () => goTo(current + 1);
+
+  $("out").addEventListener("click", e => {
+    const btn = e.target.closest(".fold button");
+    if (!btn) return;
+    const fold = btn.closest(".fold");
+    if (fold.dataset.lazy !== undefined) {
+      const run_ = lazyRuns[+fold.dataset.lazy];
+      fold.outerHTML = eqRun(run_.md, run_.base, run_.split);
+    } else {
+      fold.nextElementSibling.hidden = false;
+      fold.remove();
+    }
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.target.closest("input, select, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "n") goTo(current + 1);
+    if (e.key === "p") goTo(current - 1);
+  });
+
+  const refit = () => { fitSelect($("from")); fitSelect($("to")); };
+  window.addEventListener("resize", refit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+}
+
+function init() {
+  $("footer").innerHTML = `Verglichen wird das Markdown, das die CI im Branch <code>${esc(CONFIG.pagesBranch)}</code> des jeweiligen Repositorys ablegt (<code>&lt;Sprache&gt;/${esc(CONFIG.renderedFile)}</code>). Ein Tag ist vergleichbar, wenn ein Build seines Commits existiert. Tastatur: <kbd>n</kbd> nächste Änderung, <kbd>p</kbd> vorherige.`;
+  readUrl();
+  wire();
+  if (typeof Diff === "undefined") {
+    syncControls();
+    showMessage("<p>Die Diff-Bibliothek konnte nicht von cdn.jsdelivr.net geladen werden. Bitte Verbindung oder Inhaltsblocker prüfen und die Seite neu laden.</p>", true);
+    return;
+  }
+  load();
+}
+
+init();
+</script>
+</body>
+</html>
